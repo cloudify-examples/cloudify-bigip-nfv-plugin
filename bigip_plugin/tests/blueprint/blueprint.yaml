@@ -1,0 +1,41 @@
+tosca_definitions_version: cloudify_dsl_1_0
+
+imports:
+    - http://www.getcloudify.org/spec/cloudify/3.1rc2/types.yaml
+    - plugin.yaml
+
+inputs:
+    agent_ip:
+        default: ''
+    agent_user:
+        default: ''
+    agent_key:
+        default: ''
+    host:
+        default: ''
+    username:
+        default: ''
+    password:
+        default: ''
+    pool_id:
+        default: ''
+
+node_templates:
+    bigip_vm:
+        type: cloudify.nodes.Compute
+        properties:
+            ip: { get_input: agent_ip }
+            cloudify_agent:
+                user: { get_input: agent_user }
+                key: { get_input: agent_key }
+
+    bigip:
+        type: bigip_server
+        properties:
+            host: { get_input: host }
+            username: { get_input: username }
+            password: { get_input: password }
+            pool_id: { get_input: pool_id }
+        relationships:
+            - type: cloudify.relationships.contained_in
+              target: bigip_vm

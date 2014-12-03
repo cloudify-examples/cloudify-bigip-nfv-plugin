@@ -1,0 +1,32 @@
+##################################################################################
+# Cloudify LTM built in types and plugins definitions.
+##################################################################################
+plugins:
+    bigip:
+        executor: central_deployment_agent
+        source: https://github.com/isaac-s/cloudify-bigip-plugin/archive/{{ plugin_branch }}.zip
+
+node_types:
+    bigip_server:
+        derived_from: cloudify.nodes.LoadBalancer
+        properties:
+            host:
+                description: Hostname / address of the BIG-IP component
+                type: string
+            username:
+                description: Username to authenticate to BIG-IP with
+                type: string
+            password:
+                description: Password to authenticate to BIG-IP with
+                type: string
+            pool_id:
+                description: ID of the pool to create
+                type: string
+            lb_method:
+                description: Load-balancing method to use
+                type: string
+                default: LB_METHOD_ROUND_ROBIN
+        interfaces:
+            cloudify.interfaces.lifecycle:
+                create: bigip.bigip_plugin.tasks.create_pool
+                delete: bigip.bigip_plugin.tasks.delete_pool
