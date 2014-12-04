@@ -1,3 +1,3 @@
 # Cloudify BIG-IP Plugin
 
-Cloudify plugin for F5 BIG-IP interaction.
+Cloudify plugin for F5 BIG-IP integration.

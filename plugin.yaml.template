@@ -1,5 +1,5 @@
 ##################################################################################
-# Cloudify LTM built in types and plugins definitions.
+# Cloudify BIG-IP built in types and plugins definitions.
 ##################################################################################
 plugins:
     bigip:

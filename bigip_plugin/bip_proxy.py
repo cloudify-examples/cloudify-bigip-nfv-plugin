@@ -1,3 +1,9 @@
+from cloudify.exceptions import NonRecoverableError
+from external import bigsuds
+from external.bigsuds import ParseError, MethodNotFound, ArgumentError
+
+import sys
+
 """ Convenience class to proxy calls for BIP. We may externalize this in the future
 to support additional BIG-IP functionality.
 
@@ -15,12 +21,6 @@ https://devcentral.f5.com/wiki/iControl.LocalLB.ashx
 Exception handling: by default, all exceptions raised past this module are deemed recoverable
 (as per Cloudify's design). Therefore, we'll only dedicate special handling to exceptions that
 should be treated as NON-recoverable. """
-
-from cloudify.exceptions import NonRecoverableError
-from external import bigsuds
-from external.bigsuds import ParseError, MethodNotFound, ArgumentError
-
-import sys
 
 
 class BigIpProxy:
