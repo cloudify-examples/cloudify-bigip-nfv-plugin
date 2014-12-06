@@ -6,6 +6,22 @@ plugins:
         executor: central_deployment_agent
         source: https://github.com/isaac-s/cloudify-bigip-plugin/archive/{{ plugin_branch }}.zip
 
+relationships:
+    cloudify.bigip.connected_to_bigip:
+        derived_from: cloudify.relationships.connected_to
+        properties:
+            pool_id:
+                default: ''
+            address:
+                default: ''
+            port:
+                default: ''
+        source_interfaces:
+            cloudify.interfaces.relationship_lifecycle:
+                establish:
+                    implementation: bigip.bigip_plugin.tasks.add_member
+                unlink:
+                    implementation: bigip.bigip_plugin.tasks.remove_member
 node_types:
     bigip_server:
         derived_from: cloudify.nodes.LoadBalancer
@@ -19,14 +35,11 @@ node_types:
             password:
                 description: Password to authenticate to BIG-IP with
                 type: string
-            pool_id:
-                description: ID of the pool to create
-                type: string
-            lb_method:
-                description: Load-balancing method to use
-                type: string
-                default: LB_METHOD_ROUND_ROBIN
+            pool_configs:
+                description: List of tuples, each containing a pool ID and a load-balancing method
         interfaces:
             cloudify.interfaces.lifecycle:
-                create: bigip.bigip_plugin.tasks.create_pool
-                delete: bigip.bigip_plugin.tasks.delete_pool
+                create:
+                    implementation: bigip.bigip_plugin.tasks.create_pools
+                delete:
+                    implementation: bigip.bigip_plugin.tasks.delete_pools
