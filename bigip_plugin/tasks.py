@@ -14,7 +14,6 @@
 #    * limitations under the License.
 
 from cloudify.decorators import operation
-
 from bip_proxy import BigIpProxy
 
 
@@ -47,10 +46,11 @@ lb_method: load-balancing method (see LocalLB's documentation) """
 
 
 @operation
-def create_pool(ctx, **kwargs):
-    pool_id, lb_method = [ctx.node.properties[x] for x in ['pool_id', 'lb_method']]
-    ctx.logger.info('Creating pool: id={0}, lb_method={1}'.format(pool_id, lb_method))
-    _get_bip_proxy(ctx).create_pool(pool_id, lb_method)
+def create_pools(ctx, **kwargs):
+    pool_configs = ctx.node.properties['pool_configs']
+    for pool_id, lb_method in pool_configs:
+        ctx.logger.info('Creating pool: id={0}, lb_method={1}'.format(pool_id, lb_method))
+        _get_bip_proxy(ctx).create_pool(pool_id, lb_method)
 
 
 """ Adds a member to a previously-created pool.
@@ -63,7 +63,7 @@ port:    the member's port """
 
 @operation
 def add_member(ctx, **kwargs):
-    pool_id, address, port = _get_member(ctx.node.properties)
+    pool_id, address, port = _get_member(ctx.source.node.properties)
     ctx.logger.info('Adding member: pool id={0}, address={1}, port={2}'.format(pool_id, address, port))
     _get_bip_proxy(ctx).add_member(pool_id, address, port)
 
@@ -78,7 +78,7 @@ port:    the member's port """
 
 @operation
 def remove_member(ctx, **kwargs):
-    pool_id, address, port = _get_member(ctx.node.properties)
+    pool_id, address, port = _get_member(ctx.source.node.properties)
     ctx.logger.info('Removing member: pool id={0}, address={1}, port={2}'.format(pool_id, address, port))
     _get_bip_proxy(ctx).remove_member(pool_id, address, port)
 
@@ -90,7 +90,8 @@ pool_id: the pool's identifier """
 
 
 @operation
-def delete_pool(ctx, **kwargs):
-    pool_id = ctx.node.properties['pool_id']
-    ctx.logger.info('Deleting pool: id={0}'.format(pool_id))
-    _get_bip_proxy(ctx).delete_pool(pool_id)
+def delete_pools(ctx, **kwargs):
+    pool_configs = ctx.node.properties['pool_configs']
+    for pool_id, lb_method in pool_configs:
+        ctx.logger.info('Deleting pool: id={0}'.format(pool_id))
+        _get_bip_proxy(ctx).delete_pool(pool_id)

@@ -19,6 +19,7 @@ import unittest
 
 from cloudify.workflows import local
 
+""" Testcase for the BigIP plugin. """
 
 class TestPlugin(unittest.TestCase):
 
@@ -29,12 +30,9 @@ class TestPlugin(unittest.TestCase):
 
         # inject input from test
         inputs = {
-            'agent_ip':     'localhost',
-            'agent_user':   'ubuntu',
-            'agent_key':    '/home/ubuntu/.ssh/agent_key.pem',
-            'host':         '10.0.0.198',
+            'host':         '54.174.182.15',
             'username':     'admin',
-            'password':     'password'
+            'password':     'password',
         }
 
         # setup local workflow execution environment
@@ -42,18 +40,7 @@ class TestPlugin(unittest.TestCase):
                                   name=self._testMethodName,
                                   inputs=inputs)
 
-    def test_my_task(self):
+    def test_pool_create_delete(self):
 
-        # execute install workflow
         self.env.execute('install', task_retries=0)
-
-        # extract single node instance
-        instance = self.env.storage.get_node_instances()[0]
-
-        # assert runtime properties is properly set in node instance
-        self.assertEqual(instance.runtime_properties['value_of_some_property'],
-                         'new_test_input')
-
-        # assert deployment outputs are ok
-        self.assertDictEqual(self.env.outputs(),
-                             {'test_output': 'new_test_input'})
+        self.env.execute('uninstall', task_retries=0)
