@@ -6,19 +6,20 @@ plugins:
 relationships:
     cloudify.bigip.connected_to_bigip:
         derived_from: cloudify.relationships.connected_to
-        properties:
-            pool_id:
-                default: ''
-            address:
-                default: ''
-            port:
-                default: ''
         source_interfaces:
             cloudify.interfaces.relationship_lifecycle:
                 establish:
                     implementation: bigip.bigip_plugin.tasks.add_member
+                    inputs:
+                        pool_id: {}
+                        address: {}
+                        port: {}
                 unlink:
                     implementation: bigip.bigip_plugin.tasks.remove_member
+                    inputs:
+                        pool_id: {}
+                        address: {}
+                        port: {}
 node_types:
     bigip_server:
         derived_from: cloudify.nodes.LoadBalancer

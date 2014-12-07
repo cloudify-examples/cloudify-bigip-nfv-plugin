@@ -30,7 +30,7 @@ class TestPlugin(unittest.TestCase):
 
         # inject input from test
         inputs = {
-            'host':         '54.174.182.15',
+            'host':         '54.173.67.46',
             'username':     'admin',
             'password':     'password',
         }

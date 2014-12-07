@@ -21,12 +21,20 @@ node_templates:
             password: { get_input: password }
             pool_configs: [[test, LB_METHOD_ROUND_ROBIN]]
 
-#    node1:
-#        type: cloudify.nodes.Root
-#        relationships:
-#            - type: cloudify.bigip.connected_to_bigip
-#              target: bigip
-#              properties:
-#                  pool_id: test_pool
-#                  address: 10.0.0.99
-#                  port: 5500
+    node1:
+        type: cloudify.nodes.Root
+        relationships:
+            - type: cloudify.bigip.connected_to_bigip
+              target: bigip
+              source_interfaces:
+                cloudify.interfaces.relationship_lifecycle:
+                    establish:
+                        inputs:
+                            pool_id: test
+                            address: 10.0.0.25
+                            port: 1000
+                    unlink:
+                        inputs:
+                            pool_id: test
+                            address: 10.0.0.25
+                            port: 1000
