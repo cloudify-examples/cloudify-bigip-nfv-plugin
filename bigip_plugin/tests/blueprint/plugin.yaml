@@ -11,15 +11,28 @@ relationships:
                 establish:
                     implementation: bigip.bigip_plugin.tasks.add_member
                     inputs:
-                        pool_id: {}
-                        address: {}
-                        port: {}
+                        pool_id:
+                            description: ID of pool to add to
+                            type: string
+                        address:
+                            description: hostname / IP address to add
+                            type: string
+                        port:
+                            description: port to add
+                            type: integer
                 unlink:
                     implementation: bigip.bigip_plugin.tasks.remove_member
                     inputs:
-                        pool_id: {}
-                        address: {}
-                        port: {}
+                        pool_id:
+                            description: ID of pool to add to
+                            type: string
+                        address:
+                            description: hostname / IP address to add
+                            type: string
+                        port:
+                            description: port to add
+                            type: integer
+
 node_types:
     bigip_server:
         derived_from: cloudify.nodes.LoadBalancer
