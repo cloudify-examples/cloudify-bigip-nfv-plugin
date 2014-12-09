@@ -17,9 +17,13 @@
 import os
 import unittest
 
+from bigip_plugin.bip_proxy import BigIpProxy
+from bigip_plugin.external import bigsuds
+
 from cloudify.workflows import local
 
 """ Testcase for the BigIP plugin. """
+
 
 class TestPlugin(unittest.TestCase):
 
@@ -29,18 +33,35 @@ class TestPlugin(unittest.TestCase):
                                       'blueprint', 'blueprint.yaml')
 
         # inject input from test
-        inputs = {
-            'host':         '54.173.67.46',
-            'username':     'admin',
-            'password':     'password',
+        self.inputs = {
+            'host':             '54.88.190.101',
+            'username':         'admin',
+            'password':         'password',
+            'pool_id':          'test',
+            'node1_address':    '10.0.0.1',
+            'node1_port':       '22200'
         }
 
         # setup local workflow execution environment
         self.env = local.init_env(blueprint_path,
                                   name=self._testMethodName,
-                                  inputs=inputs)
+                                  inputs=self.inputs)
 
     def test_pool_create_delete(self):
+
+        # Ensure we don't have the test pool defined; otherwise
+        # we can't run the test.
+
+        bigip = bigsuds.BIGIP(hostname=self.inputs['host'],
+                              username=self.inputs['username'],
+                              password=self.inputs['password'])
+
+        existing_pools = bigip.LocalLB.Pool.get_list()
+        pool_id = self.inputs['pool_id']
+        pool_name = BigIpProxy.get_pool_name(pool_id)
+
+        if pool_name in existing_pools:
+            self.fail('Test pool already exists: {0}'.format(pool_id))
 
         self.env.execute('install', task_retries=0)
         self.env.execute('uninstall', task_retries=0)

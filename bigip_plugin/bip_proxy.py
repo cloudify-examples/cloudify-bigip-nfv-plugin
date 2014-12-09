@@ -37,7 +37,7 @@ class BigIpProxy:
     """ Get the LTM canonical pool name from its ID. """
 
     @staticmethod
-    def _get_pool_name(pool_id):
+    def get_pool_name(pool_id):
         return '/Common/%s' % pool_id
 
     """ Convenience method to obtain a dictionary represending a pool member. """
@@ -56,7 +56,7 @@ class BigIpProxy:
             available for 'LBMethod' """
 
     def create_pool(self, pool_id, lb_method):
-        pool_name = self._get_pool_name(pool_id)
+        pool_name = self.get_pool_name(pool_id)
         try:
             self._get_bip().LocalLB.Pool.create_v2([pool_name], [lb_method], [[]])
         except (ParseError, MethodNotFound, ArgumentError):
@@ -73,7 +73,7 @@ class BigIpProxy:
             the member's port """
 
     def add_member(self, pool_id, address, port):
-        pool_name = self._get_pool_name(pool_id)
+        pool_name = self.get_pool_name(pool_id)
         try:
             self._get_bip().LocalLB.Pool.add_member_v2([pool_name], [[self._get_member(address, port)]])
         except (ParseError, MethodNotFound, ArgumentError):
@@ -90,7 +90,7 @@ class BigIpProxy:
             the member's port """
 
     def remove_member(self, pool_id, address, port):
-        pool_name = self._get_pool_name(pool_id)
+        pool_name = self.get_pool_name(pool_id)
         try:
             self._get_bip().LocalLB.Pool.remove_member_v2([pool_name], [[self._get_member(address, port)]])
         except (ParseError, MethodNotFound, ArgumentError):
@@ -103,7 +103,7 @@ class BigIpProxy:
             the pool's identifier """
 
     def delete_pool(self, pool_id):
-        pool_name = self._get_pool_name(pool_id)
+        pool_name = self.get_pool_name(pool_id)
         try:
             self._get_bip().LocalLB.Pool.delete_pool([pool_name])
         except (ParseError, MethodNotFound, ArgumentError):

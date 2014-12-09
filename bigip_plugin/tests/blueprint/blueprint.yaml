@@ -5,12 +5,12 @@ imports:
     - plugin.yaml
 
 inputs:
-    host:
-        default: ''
-    username:
-        default: ''
-    password:
-        default: ''
+    host: {}
+    username: {}
+    password: {}
+    pool_id: {}
+    node1_address: {}
+    node1_port: {}
 
 node_templates:
     bigip:
@@ -19,7 +19,7 @@ node_templates:
             host: { get_input: host }
             username: { get_input: username }
             password: { get_input: password }
-            pool_configs: [[test, LB_METHOD_ROUND_ROBIN]]
+            pool_configs: [[{ get_input: pool_id }, LB_METHOD_ROUND_ROBIN]]
 
     node1:
         type: cloudify.nodes.Root
@@ -30,11 +30,11 @@ node_templates:
                 cloudify.interfaces.relationship_lifecycle:
                     establish:
                         inputs:
-                            pool_id: test
-                            address: 10.0.0.25
-                            port: 1000
+                            pool_id: { get_input: pool_id }
+                            address: { get_input: node1_address }
+                            port: { get_input: node1_port }
                     unlink:
                         inputs:
-                            pool_id: test
-                            address: 10.0.0.25
-                            port: 1000
+                            pool_id: { get_input: pool_id }
+                            address: { get_input: node1_address }
+                            port: { get_input: node1_port }
