@@ -112,7 +112,7 @@ node_templates:
         type: cloudify.openstack.nodes.SecurityGroup
         properties:
             security_group:
-                name: nodecellar_security_group
+                name: bigip_nodecellar_security_group
             rules:
                 - remote_ip_prefix: 0.0.0.0/0
                   port: { get_property: [ nodecellar, port ] }
@@ -121,7 +121,7 @@ node_templates:
         type: cloudify.openstack.nodes.SecurityGroup
         properties:
             security_group:
-                name: mongod_security_group
+                name: bigip_mongod_security_group
             rules:
                 - remote_ip_prefix: 0.0.0.0/0
                   port: { get_property: [ mongod, port ] }
