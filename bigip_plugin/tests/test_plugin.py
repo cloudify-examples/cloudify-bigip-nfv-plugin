@@ -30,22 +30,27 @@ class TestPlugin(unittest.TestCase):
     def setUp(self):
         # build blueprint path
         blueprint_path = os.path.join(os.path.dirname(__file__),
-                                      'blueprint', 'blueprint.yaml')
+                                      'blueprint',
+                                      'blueprint-nodecellar.yaml')
 
         # inject input from test
         self.inputs = {
-            'host':             '54.88.190.101',
+            'host':             'cfy-bigip',
             'username':         'admin',
             'password':         'password',
             'pool_id':          'test',
-            'node1_address':    '10.0.0.1',
-            'node1_port':       '22200'
         }
+
+        IGNORED_LOCAL_WORKFLOW_MODULES = (
+            'worker_installer.tasks',
+            'plugin_installer.tasks'
+        )
 
         # setup local workflow execution environment
         self.env = local.init_env(blueprint_path,
                                   name=self._testMethodName,
-                                  inputs=self.inputs)
+                                  inputs=self.inputs,
+                                  ignored_modules=IGNORED_LOCAL_WORKFLOW_MODULES)
 
     def test_pool_create_delete(self):
 

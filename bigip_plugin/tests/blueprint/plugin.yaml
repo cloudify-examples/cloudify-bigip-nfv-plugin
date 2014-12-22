@@ -1,10 +1,10 @@
 plugins:
     bigip:
         executor: central_deployment_agent
-        install: false
+        source: ../../../
 
 relationships:
-    cloudify.bigip.connected_to_bigip:
+    cloudify.bigip.connected_to_member:
         derived_from: cloudify.relationships.connected_to
         source_interfaces:
             cloudify.interfaces.relationship_lifecycle:
@@ -24,10 +24,13 @@ relationships:
                     implementation: bigip.bigip_plugin.tasks.remove_member
                     inputs:
                         pool_id:
+                            description: ID of pool to remove from
                             type: string
                         address:
+                            description: hostname / IP address to remove
                             type: string
                         port:
+                            description: port to remove
                             type: integer
 
 node_types:

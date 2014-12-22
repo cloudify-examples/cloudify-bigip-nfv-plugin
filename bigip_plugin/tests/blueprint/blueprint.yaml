@@ -1,7 +1,7 @@
 tosca_definitions_version: cloudify_dsl_1_0
 
 imports:
-    - http://www.getcloudify.org/spec/cloudify/3.1rc2/types.yaml
+    - http://www.getcloudify.org/spec/cloudify/3.1/types.yaml
     - plugin.yaml
 
 inputs:
@@ -9,32 +9,48 @@ inputs:
     username: {}
     password: {}
     pool_id: {}
-    node1_address: {}
-    node1_port: {}
+    lb_method:
+        default: LB_METHOD_ROUND_ROBIN
+
+node_types:
+    mock_virtual_ip:
+        derived_from: cloudify.nodes.VirtualIP
+        properties:
+            mock_address:
+                description: hostname / IP address
+                type: string
 
 node_templates:
     bigip:
         type: bigip_server
-        properties:
-            host: { get_input: host }
-            username: { get_input: username }
-            password: { get_input: password }
-            pool_configs: [[{ get_input: pool_id }, LB_METHOD_ROUND_ROBIN]]
-
-    node1:
-        type: cloudify.nodes.Root
         relationships:
-            - type: cloudify.bigip.connected_to_bigip
-              target: bigip
+            - type: cloudify.bigip.connected_to_member
+              target: virtual-ip
               source_interfaces:
                 cloudify.interfaces.relationship_lifecycle:
                     establish:
                         inputs:
                             pool_id: { get_input: pool_id }
-                            address: { get_input: node1_address }
-                            port: { get_input: node1_port }
+                            address: { get_property: [virtual-ip, mock_address]}
+                            port: 80
                     unlink:
                         inputs:
                             pool_id: { get_input: pool_id }
-                            address: { get_input: node1_address }
-                            port: { get_input: node1_port }
+                            address: { get_property: [virtual-ip, mock_address]}
+                            port: 80
+        properties:
+            host: { get_input: host }
+            username: { get_input: username }
+            password: { get_input: password }
+            pool_configs: [[{ get_input: pool_id }, { get_input: lb_method }]]
+
+    virtual-ip:
+        type: mock_virtual_ip
+        properties:
+            mock_address: 192.168.0.1
+
+    node1:
+        type: cloudify.nodes.Root
+        relationships:
+            - type: cloudify.relationships.depends_on
+              target: virtual-ip

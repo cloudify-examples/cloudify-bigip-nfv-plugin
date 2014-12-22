@@ -65,7 +65,7 @@ port:    the member's port """
 @operation
 def add_member(pool_id, address, port, **kwargs):
     ctx.logger.info('Adding member: pool id={0}, address={1}, port={2}'.format(pool_id, address, port))
-    _get_bip_proxy(ctx.target.node.properties).add_member(pool_id, address, port)
+    _get_bip_proxy(ctx.source.node.properties).add_member(pool_id, address, port)
 
 
 """ Removes a member from a previously-created pool.
@@ -79,7 +79,7 @@ port:    the member's port """
 @operation
 def remove_member(pool_id, address, port, **kwargs):
     ctx.logger.info('Removing member: pool id={0}, address={1}, port={2}'.format(pool_id, address, port))
-    _get_bip_proxy(ctx.target.node.properties).remove_member(pool_id, address, port)
+    _get_bip_proxy(ctx.source.node.properties).remove_member(pool_id, address, port)
 
 
 """ Deletes a pool.
