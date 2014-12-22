@@ -1,0 +1,164 @@
+tosca_definitions_version: cloudify_dsl_1_0
+
+imports:
+    - http://www.getcloudify.org/spec/cloudify/3.1/types.yaml
+    - http://www.getcloudify.org/spec/openstack-plugin/1.1/plugin.yaml
+    - http://www.getcloudify.org/spec/diamond-plugin/1.1/plugin.yaml
+    - types/nodecellar.yaml
+    - plugin.yaml
+
+inputs:
+    host: {}
+    username: {}
+    password: {}
+    pool_id: {}
+    lb_method:
+        default: LB_METHOD_ROUND_ROBIN
+    image:
+        default: 261844b3-479c-5446-a2c4-1ea95d53b668
+    flavor:
+        default: 102
+    agent_user:
+        default: ubuntu
+
+node_types:
+    nodecellar.nodes.MonitoredServer:
+        derived_from: cloudify.openstack.nodes.Server
+        properties:
+            cloudify_agent:
+                default:
+                    user: { get_input: agent_user }
+            server:
+                default:
+                    image: { get_input: image }
+                    flavor: { get_input: flavor }
+        interfaces:
+            cloudify.interfaces.monitoring_agent:
+                install:
+                    implementation: diamond.diamond_agent.tasks.install
+                    inputs:
+                        diamond_config:
+                            default:
+                                interval: 1
+                start: diamond.diamond_agent.tasks.start
+                stop: diamond.diamond_agent.tasks.stop
+                uninstall: diamond.diamond_agent.tasks.uninstall
+            cloudify.interfaces.monitoring:
+                start:
+                    implementation: diamond.diamond_agent.tasks.add_collectors
+                    inputs:
+                        collectors_config:
+                            default:
+                                CPUCollector: {}
+                                MemoryCollector: {}
+                                LoadAverageCollector: {}
+                                DiskUsageCollector:
+                                    config:
+                                        devices: x?vd[a-z]+[0-9]*$
+                                NetworkCollector: {}
+
+node_templates:
+
+    mongod_host:
+        type: nodecellar.nodes.MonitoredServer
+        relationships:
+            - target: mongod_security_group
+              type: cloudify.openstack.server_connected_to_security_group
+
+    nodejs_host:
+        type: nodecellar.nodes.MonitoredServer
+        relationships:
+            - target: nodecellar_floatingip
+              type: cloudify.openstack.server_connected_to_floating_ip
+            - target: nodecellar_security_group
+              type: cloudify.openstack.server_connected_to_security_group
+
+    mongod:
+        type: nodecellar.nodes.MongoDatabase
+        properties:
+            port: 27017
+        interfaces:
+            cloudify.interfaces.lifecycle:
+                configure: scripts/mongo/install-pymongo.sh
+            cloudify.interfaces.monitoring:
+                start:
+                    implementation: diamond.diamond_agent.tasks.add_collectors
+                    inputs:
+                        collectors_config:
+                            MongoDBCollector:
+                                config:
+                                    hosts: "localhost:27017"
+        relationships:
+            - type: cloudify.relationships.contained_in
+              target: mongod_host
+
+    nodejs:
+        type: nodecellar.nodes.NodeJSServer
+        relationships:
+            - type: cloudify.relationships.contained_in
+              target: nodejs_host
+
+    nodecellar:
+        type: nodecellar.nodes.NodecellarApplicationModule
+        properties:
+            port: 8080
+        relationships:
+            - type: node_connected_to_mongo
+              target: mongod
+            - type: node_contained_in_nodejs
+              target: nodejs
+
+    nodecellar_security_group:
+        type: cloudify.openstack.nodes.SecurityGroup
+        properties:
+            security_group:
+                name: nodecellar_security_group
+            rules:
+                - remote_ip_prefix: 0.0.0.0/0
+                  port: { get_property: [ nodecellar, port ] }
+
+    mongod_security_group:
+        type: cloudify.openstack.nodes.SecurityGroup
+        properties:
+            security_group:
+                name: mongod_security_group
+            rules:
+                - remote_ip_prefix: 0.0.0.0/0
+                  port: { get_property: [ mongod, port ] }
+                - remote_ip_prefix: 0.0.0.0/0
+                  port: 28017
+
+    nodecellar_floatingip:
+        type: cloudify.openstack.nodes.FloatingIP
+
+    bigip:
+        type: bigip_server
+        relationships:
+          - type: cloudify.relationships.depends_on
+            target: nodecellar
+          - type: cloudify.bigip.connected_to_member
+            target: nodecellar_floatingip
+            source_interfaces:
+                cloudify.interfaces.relationship_lifecycle:
+                    establish:
+                        inputs:
+                            pool_id: { get_input: pool_id }
+                            address: { get_attribute: [nodecellar_floatingip, floating_ip_address]}
+                            port: { get_property: [ nodecellar, port ] }
+                    unlink:
+                        inputs:
+                            pool_id: { get_input: pool_id }
+                            address: { get_attribute: [nodecellar_floatingip, floating_ip_address]}
+                            port: { get_property: [ nodecellar, port ] }
+        properties:
+            host: { get_input: host }
+            username: { get_input: username }
+            password: { get_input: password }
+            pool_configs: [[{ get_input: pool_id }, { get_input: lb_method }]]
+
+outputs:
+    endpoint:
+        description: Web application endpoint
+        value:
+            ip_address: { get_attribute: [ nodecellar_floatingip, floating_ip_address ] }
+            port: { get_property: [ nodecellar, port ] }
