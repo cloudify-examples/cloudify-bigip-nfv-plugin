@@ -1,3 +1,9 @@
+##########################################################################
+# Sample blueprint for using the BigIP plugin with Openstack.
+# This blueprint is essentially the Nodecellar blueprint with the addition
+# of the BigIP artifacts.
+##########################################################################
+
 tosca_definitions_version: cloudify_dsl_1_0
 
 imports:

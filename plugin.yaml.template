@@ -4,7 +4,7 @@
 plugins:
     bigip:
         executor: central_deployment_agent
-        source: https://github.com/isaac-s/cloudify-bigip-plugin/archive/{{ plugin_branch }}.zip
+        source: https://github.com/cloudify-cosmo/cloudify-bigip-plugin/archive/{{ plugin_branch }}.zip
 
 relationships:
     cloudify.bigip.connected_to_member:
