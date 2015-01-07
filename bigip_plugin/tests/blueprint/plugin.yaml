@@ -1,44 +1,49 @@
+##################################################################################
+# Cloudify BIG-IP built in types and plugins definitions.
+##################################################################################
 plugins:
     bigip:
         executor: central_deployment_agent
         source: https://github.com/cloudify-cosmo/cloudify-bigip-plugin/archive/master.zip
 
 relationships:
-    cloudify.bigip.connected_to_member:
-        derived_from: cloudify.relationships.connected_to
+    cloudify.bigip.pool_to_endpoint:
+        derived_from: cloudify.relationships.depends_on
         source_interfaces:
             cloudify.interfaces.relationship_lifecycle:
                 establish:
                     implementation: bigip.bigip_plugin.tasks.add_member
                     inputs:
-                        pool_id:
-                            description: ID of pool to add to
-                            type: string
                         address:
-                            description: hostname / IP address to add
+                            description: host address to add to the pool
                             type: string
+                            default: { get_attribute: [ TARGET, floating_ip_address] }
                         port:
-                            description: port to add
+                            description: host address to add to the pool
                             type: integer
                 unlink:
                     implementation: bigip.bigip_plugin.tasks.remove_member
                     inputs:
-                        pool_id:
-                            description: ID of pool to remove from
-                            type: string
                         address:
-                            description: hostname / IP address to remove
+                            description: host address to remove from the pool
                             type: string
+                            default: { get_attribute: [ TARGET, floating_ip_address] }
                         port:
-                            description: port to remove
+                            description: port to remove from the pool
                             type: integer
 
 node_types:
-    bigip_server:
+    bigip_pool:
         derived_from: cloudify.nodes.LoadBalancer
+        interfaces:
+            cloudify.interfaces.lifecycle:
+                create:
+                    implementation: bigip.bigip_plugin.tasks.create_pool
+                delete:
+                    implementation: bigip.bigip_plugin.tasks.delete_pool
         properties:
             host:
-                description: Hostname / address of the BIG-IP component
+                description: Hostname / address of the BIG-IP server
                 type: string
             username:
                 description: Username to authenticate to BIG-IP with
@@ -46,11 +51,9 @@ node_types:
             password:
                 description: Password to authenticate to BIG-IP with
                 type: string
-            pool_configs:
-                description: List of tuples, each containing a pool ID and a load-balancing method
-        interfaces:
-            cloudify.interfaces.lifecycle:
-                create:
-                    implementation: bigip.bigip_plugin.tasks.create_pools
-                delete:
-                    implementation: bigip.bigip_plugin.tasks.delete_pools
+            pool_id:
+                description: pool's identifier
+                type: string
+            lb_method:
+                description: load-balancing method
+                type: string

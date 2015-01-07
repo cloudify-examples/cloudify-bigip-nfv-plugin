@@ -28,6 +28,7 @@ password: used to authenticate against BIG-IP """
 
 def _get_bip_proxy(d):
     hostname, username, password = [d[x] for x in ['host', 'username', 'password']]
+    ctx.logger.debug('Constructing BIG-IP proxy: {0}/{1}'.format(hostname, username))
     return BigIpProxy(hostname, username, password)
 
 
@@ -47,11 +48,23 @@ lb_method: load-balancing method (see LocalLB's documentation) """
 
 
 @operation
-def create_pools(**kwargs):
-    pool_configs = ctx.node.properties['pool_configs']
-    for pool_id, lb_method in pool_configs:
-        ctx.logger.info('Creating pool: id={0}, lb_method={1}'.format(pool_id, lb_method))
-        _get_bip_proxy(ctx.node.properties).create_pool(pool_id, lb_method)
+def create_pool(**kwargs):
+    pool_id, lb_method = [ctx.node.properties[x] for x in ['pool_id', 'lb_method']]
+    ctx.logger.info('Creating pool: pool_id={0}, lb_method={1}'.format(pool_id, lb_method))
+    _get_bip_proxy(ctx.node.properties).create_pool(pool_id, lb_method)
+
+
+""" Deletes a pool.
+Expected node-level properties:
+
+pool_id: the pool's identifier """
+
+
+@operation
+def delete_pool(**kwargs):
+    pool_id = ctx.node.properties['pool_id']
+    ctx.logger.info('Deleting pool: id={0}'.format(pool_id))
+    _get_bip_proxy(ctx.node.properties).delete_pool(pool_id)
 
 
 """ Adds a member to a previously-created pool.
@@ -63,7 +76,8 @@ port:    the member's port """
 
 
 @operation
-def add_member(pool_id, address, port, **kwargs):
+def add_member(address, port, **kwargs):
+    pool_id = ctx.source.node.properties['pool_id']
     ctx.logger.info('Adding member: pool id={0}, address={1}, port={2}'.format(pool_id, address, port))
     _get_bip_proxy(ctx.source.node.properties).add_member(pool_id, address, port)
 
@@ -77,20 +91,7 @@ port:    the member's port """
 
 
 @operation
-def remove_member(pool_id, address, port, **kwargs):
+def remove_member(address, port, **kwargs):
+    pool_id = ctx.source.node.properties['pool_id']
     ctx.logger.info('Removing member: pool id={0}, address={1}, port={2}'.format(pool_id, address, port))
     _get_bip_proxy(ctx.source.node.properties).remove_member(pool_id, address, port)
-
-
-""" Deletes a pool.
-Expected node-level properties:
-
-pool_id: the pool's identifier """
-
-
-@operation
-def delete_pools(**kwargs):
-    pool_configs = ctx.node.properties['pool_configs']
-    for pool_id, lb_method in pool_configs:
-        ctx.logger.info('Deleting pool: id={0}'.format(pool_id))
-        _get_bip_proxy(ctx.node.properties).delete_pool(pool_id)

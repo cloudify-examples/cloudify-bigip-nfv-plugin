@@ -11,6 +11,7 @@ inputs:
     pool_id: {}
     lb_method:
         default: LB_METHOD_ROUND_ROBIN
+    port: {}
 
 node_types:
     mock_virtual_ip:
@@ -21,36 +22,43 @@ node_types:
                 type: string
 
 node_templates:
-    bigip:
-        type: bigip_server
-        relationships:
-            - type: cloudify.bigip.connected_to_member
-              target: virtual-ip
-              source_interfaces:
-                cloudify.interfaces.relationship_lifecycle:
-                    establish:
-                        inputs:
-                            pool_id: { get_input: pool_id }
-                            address: { get_property: [virtual-ip, mock_address]}
-                            port: 80
-                    unlink:
-                        inputs:
-                            pool_id: { get_input: pool_id }
-                            address: { get_property: [virtual-ip, mock_address]}
-                            port: 80
+    pool:
+        type: bigip_pool
         properties:
             host: { get_input: host }
             username: { get_input: username }
             password: { get_input: password }
-            pool_configs: [[{ get_input: pool_id }, { get_input: lb_method }]]
+            pool_id: { get_input: pool_id }
+            lb_method: { get_input: lb_method }
+        relationships:
+          - type: cloudify.bigip.pool_to_endpoint
+            target: virtual_ip
+            source_interfaces:
+                cloudify.interfaces.relationship_lifecycle:
+                    establish:
+                        inputs:
+                            address: { get_property: [virtual_ip, mock_address] }
+                            port: { get_input: port }
+                    unlink:
+                        inputs:
+                            address: { get_property: [virtual_ip, mock_address] }
+                            port: { get_input: port }
+          - type: cloudify.relationships.depends_on
+            target: application
 
-    virtual-ip:
+    application:
+        type: cloudify.nodes.Root
+        relationships:
+          - type: cloudify.relationships.contained_in
+            target: compute
+
+    compute:
+        type: cloudify.nodes.Root
+        relationships:
+          - type: cloudify.relationships.depends_on
+            target: virtual_ip
+
+    virtual_ip:
         type: mock_virtual_ip
         properties:
             mock_address: 192.168.0.1
-
-    node1:
-        type: cloudify.nodes.Root
-        relationships:
-            - type: cloudify.relationships.depends_on
-              target: virtual-ip
