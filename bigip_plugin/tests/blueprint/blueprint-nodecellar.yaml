@@ -138,7 +138,7 @@ node_templates:
         type: cloudify.openstack.nodes.FloatingIP
 
     lb_pool:
-        type: bigip_pool
+        type: cloudify.bigip.nodes.Pool
         properties:
             host: { get_input: host }
             username: { get_input: username }
@@ -146,7 +146,7 @@ node_templates:
             pool_id: { get_input: pool_id }
             lb_method: { get_input: lb_method }
         relationships:
-          - type: cloudify.relationships.depends_on
+          - type: cloudify.bigip.pool_to_application
             target: nodecellar
           - type: cloudify.bigip.pool_to_endpoint
             target: nodecellar_floatingip

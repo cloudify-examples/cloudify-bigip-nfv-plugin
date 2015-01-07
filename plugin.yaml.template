@@ -8,7 +8,7 @@ plugins:
 
 relationships:
     cloudify.bigip.pool_to_endpoint:
-        derived_from: cloudify.relationships.depends_on
+        derived_from: cloudify.relationships.connected_to
         source_interfaces:
             cloudify.interfaces.relationship_lifecycle:
                 establish:
@@ -32,8 +32,11 @@ relationships:
                             description: port to remove from the pool
                             type: integer
 
+    cloudify.bigip.pool_to_application:
+        derived_from: cloudify.relationships.depends_on
+
 node_types:
-    bigip_pool:
+    cloudify.bigip.nodes.Pool:
         derived_from: cloudify.nodes.LoadBalancer
         interfaces:
             cloudify.interfaces.lifecycle:
@@ -57,3 +60,4 @@ node_types:
             lb_method:
                 description: load-balancing method
                 type: string
+                default: LB_METHOD_ROUND_ROBIN

@@ -19,7 +19,7 @@ from bip_proxy import BigIpProxy
 
 
 """ Shortcut for obtaining a proxy object for BIG-IP.
-Expected node properties:
+Expected dictionary keys:
 
 host: the BIG-IP hostname
 username: used to authenticate against BIG-IP
@@ -30,14 +30,6 @@ def _get_bip_proxy(d):
     hostname, username, password = [d[x] for x in ['host', 'username', 'password']]
     ctx.logger.debug('Constructing BIG-IP proxy: {0}/{1}'.format(hostname, username))
     return BigIpProxy(hostname, username, password)
-
-
-""" Shortcut for obtaining pool member's details from a dictionary. """
-
-
-def _get_member(d):
-    pool_id, address, port = [d[x] for x in ['pool_id', 'address', 'port']]
-    return pool_id, address, port
 
 
 """ Creates a pool.
@@ -68,9 +60,13 @@ def delete_pool(**kwargs):
 
 
 """ Adds a member to a previously-created pool.
-Expected node-level properties:
+Expected source properties:
 
 pool_id: the pool's identifier
+host, username, password: parameters used to connect to BIG-IP
+
+Operation parameters:
+
 address: the member's address (hostname or IP address)
 port:    the member's port """
 
@@ -83,9 +79,13 @@ def add_member(address, port, **kwargs):
 
 
 """ Removes a member from a previously-created pool.
-Expected node-level properties:
+Expected source properties:
 
 pool_id: the pool's identifier
+host, username, password: parameters used to connect to BIG-IP
+
+Operation parameters:
+
 address: the member's address (hostname or IP address)
 port:    the member's port """
 

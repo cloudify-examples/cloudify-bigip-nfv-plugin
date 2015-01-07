@@ -23,7 +23,7 @@ node_types:
 
 node_templates:
     pool:
-        type: bigip_pool
+        type: cloudify.bigip.nodes.Pool
         properties:
             host: { get_input: host }
             username: { get_input: username }
@@ -43,7 +43,7 @@ node_templates:
                         inputs:
                             address: { get_property: [virtual_ip, mock_address] }
                             port: { get_input: port }
-          - type: cloudify.relationships.depends_on
+          - type: cloudify.bigip.pool_to_application
             target: application
 
     application:
