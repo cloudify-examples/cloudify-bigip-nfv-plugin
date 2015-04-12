@@ -6,4 +6,4 @@ Cloudify plugin for [F5 BIG-IP](https://f5.com/products/big-ip).
 
 ## Usage
 
-See [BIG-IP Plugin](http://getcloudify.org/guide/3.1/plugin-bigip.html)
+See [BIG-IP Plugin](http://getcloudify.org/guide/plugin-bigip.html)
