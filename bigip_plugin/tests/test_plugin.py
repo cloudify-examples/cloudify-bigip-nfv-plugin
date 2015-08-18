@@ -31,7 +31,7 @@ class TestPlugin(unittest.TestCase):
         # build blueprint path
         blueprint_path = os.path.join(os.path.dirname(__file__),
                                       'blueprint',
-                                      'blueprint-nodecellar.yaml')
+                                      'blueprint.yaml')
 
         # inject input from test
         self.inputs = {
@@ -39,6 +39,7 @@ class TestPlugin(unittest.TestCase):
             'username':         'admin',
             'password':         'password',
             'pool_id':          'test',
+            'port':             '80'
         }
 
         IGNORED_LOCAL_WORKFLOW_MODULES = (

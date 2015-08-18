@@ -137,30 +137,27 @@ node_templates:
     nodecellar_floatingip:
         type: cloudify.openstack.nodes.FloatingIP
 
-    bigip:
-        type: bigip_server
+    lb_pool:
+        type: cloudify.bigip.nodes.Pool
+        properties:
+            host: { get_input: host }
+            username: { get_input: username }
+            password: { get_input: password }
+            pool_id: { get_input: pool_id }
+            lb_method: { get_input: lb_method }
         relationships:
-          - type: cloudify.relationships.depends_on
+          - type: cloudify.bigip.pool_to_application
             target: nodecellar
-          - type: cloudify.bigip.connected_to_member
+          - type: cloudify.bigip.pool_to_endpoint
             target: nodecellar_floatingip
             source_interfaces:
                 cloudify.interfaces.relationship_lifecycle:
                     establish:
                         inputs:
-                            pool_id: { get_input: pool_id }
-                            address: { get_attribute: [nodecellar_floatingip, floating_ip_address]}
                             port: { get_property: [ nodecellar, port ] }
                     unlink:
                         inputs:
-                            pool_id: { get_input: pool_id }
-                            address: { get_attribute: [nodecellar_floatingip, floating_ip_address]}
                             port: { get_property: [ nodecellar, port ] }
-        properties:
-            host: { get_input: host }
-            username: { get_input: username }
-            password: { get_input: password }
-            pool_configs: [[{ get_input: pool_id }, { get_input: lb_method }]]
 
 outputs:
     endpoint:
