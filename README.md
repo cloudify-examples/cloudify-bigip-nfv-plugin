@@ -1,3 +1,4 @@
+[![Build Status](https://circleci.com/gh/cloudify-examples/cloudify-bigip-nfv-plugin.svg?style=shield&circle-token=:circle-token)](https://circleci.com/gh/cloudify-examples/cloudify-bigip-nfv-plugin)
 
 # Cloudify F5 BIG-IP description
 
